@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUSH$RACE Game</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            overflow: hidden; 
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+    <script>
+                let canvas;
+        let ctx;
+        let car;
+        let obstacles = [];
+        let score = 10;
+        let gameSpeed = 1;
+        let keys = {
+            ArrowUp: false,
+            ArrowDown: false,
+            ArrowLeft: false,
+            ArrowRight: false
+        };
+
+                document.addEventListener('keydown', keyDown);
+        document.addEventListener('keyup', keyUp);
+
+        function keyDown(event) {
+            keys[event.key] = true;
+        }
+
+        function keyUp(event) {
+            keys[event.key] = false;
+        }
+
+                function startGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            car = new Car(canvas.width / 3 - 25, canvas.height - 100, 50, 100);
+
+                        updateGame();
+        }
+
+                class Car {
+            constructor(x, y, width, height) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+            }
+
+            draw() {
+                ctx.fillStyle = '#333';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            move() {
+                if (keys.ArrowLeft && this.x > 0) {
+                    this.x -= gameSpeed + 1;
+                }
+                if (keys.ArrowRight && this.x < canvas.width - this.width) {
+                    this.x += gameSpeed + 1;
+                }
+            }
+        }
+
+                class Obstacle {
+            constructor(x, y, width, height) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+            }
+
+            draw() {
+                ctx.fillStyle = 'Blue';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            move() {
+                this.y += gameSpeed;
+            }
+        }
+
+                function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        if (Math.random() > 0.96) {
+                let obstacleX = Math.random() * (canvas.width - 10);
+                obstacles.push(new Obstacle(obstacleX, -20, 20, 20));
+            }
+
+            for (let i = 0; i < obstacles.length; i++) {
+                obstacles[i].draw();
+                obstacles[i].move();
+
+                                if (detectCollision(car, obstacles[i])) {
+                    gameOver();
+                    return;
+                }
+
+                                if (obstacles[i].y > canvas.height) {
+                    obstacles.splice(i, 1);
+                    score++;
+                }
+            }
+
+                        car.draw();
+            car.move();
+
+                        ctx.fillStyle = '#000';
+            ctx.font = '20px Arial';
+            ctx.fillText('Score: ' + score, 20, 30);
+
+                       requestAnimationFrame(updateGame);
+        }
+
+                function detectCollision(car, obstacle) {
+            return !(
+                car.x > obstacle.x + obstacle.width ||
+                car.x + car.width < obstacle.x ||
+                car.y > obstacle.y + obstacle.height ||
+                car.y + car.height < obstacle.y
+            );
+        }
+
+                function gameOver() {
+            alert('Game Over! Your score is: ' + score);
+            score = 0;
+            obstacles = [];
+            car.x = canvas.width / 2 - 15;
+            car.y = canvas.height - 70;
+        }
+
+               startGame();
+    </script>
+</body>
+</html>
